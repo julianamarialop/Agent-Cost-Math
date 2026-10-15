@@ -1,10 +1,10 @@
 {
- "project": "Claims triage with a router and domain specialists",
+ "project": "Online store customer service: \"Where is my order?\"",
  "orchestration_pattern": "router",
- "model_choice": "Declared per component. Leave a component's model out and the engine picks the cheapest model of the required tier from whatever price table it was given, so the answer would move every time a vendor moves a price.",
+ "model_choice": "Declared per component. When a component's model is omitted, the engine selects the lowest cost model of the required tier from the price table it receives, so the result would change whenever a vendor changes a price.",
  "components": [
   {
-   "name": "Intent triage",
+   "name": "Question classification",
    "role": "router",
    "model": "Claude Haiku 4.5",
    "task_class": "classification",
@@ -12,10 +12,10 @@
    "input_tokens": 900,
    "output_tokens": 20,
    "caching": true,
-   "note": "Highest call volume in the system and 2.4% of the bill. Caching is declared here and will NOT happen: the prefix is under this model's cacheable floor, and the API neither errors nor warns."
+   "note": "Reads every customer message and identifies its subject: order status, exchange or payment. Highest volume in the system and 2.4% of the cost. Caching is declared and will not take effect: the prompt is below this model's minimum cacheable length, and the API returns neither an error nor a warning."
   },
   {
-   "name": "Claim specialist",
+   "name": "Order resolution agent",
    "role": "specialist",
    "model": "Claude Opus 5",
    "task_class": "tool_using_agent",
@@ -26,10 +26,10 @@
    "output_tokens_per_iteration": 300,
    "caching": true,
    "static_prefix_tokens": 6000,
-   "note": "Four times fewer calls than the router and thirty six times the cost. The loop bills 62,000 input tokens per task where the naive count says 48,000, and the role is mid tier while the task is tool using, so the higher of the two wins."
+   "note": "Handles order status requests: queries the order system, the carrier tracking service and the delivery policy before answering. Receives four times fewer requests than the classification and costs thirty six times more. Its iterations consume 62,000 input tokens per request, against 48,000 in the simple estimate."
   },
   {
-   "name": "Document extractor",
+   "name": "Shipping document reader",
    "role": "extractor",
    "model": "Claude Haiku 4.5",
    "task_class": "extraction",
@@ -37,7 +37,7 @@
    "input_tokens": 8000,
    "output_tokens": 600,
    "caching": true,
-   "note": "Map phase: reads the report and copies out the fields. Reduce has to be code, not another model call."
+   "note": "Reads the invoice and the carrier documents and extracts the fields the agent requires. Consolidation is performed by code, not by another model call."
   },
   {
    "name": "History compressor",
@@ -48,10 +48,10 @@
    "input_tokens": 12000,
    "output_tokens": 800,
    "caching": true,
-   "note": "Exists so the specialist does not pay the full inflation. Its reader is the next iteration of the agent, not a human, which is why it stays on the cheap tier. Classify it as summarization for humans and it moves to mid, killing the saving it exists to produce."
+   "note": "Summarizes the conversation so that the agent does not reprocess the full history. Its output is read by the agent's next iteration, not by a person, which is why it remains on the lower cost tier."
   },
   {
-   "name": "Final decision review",
+   "name": "Answer quality review",
    "role": "judge",
    "model": "Claude Opus 5",
    "task_class": "evaluation",
@@ -59,7 +59,7 @@
    "input_tokens": 5000,
    "output_tokens": 500,
    "caching": true,
-   "note": "10% sample. A judge on the same tier as the judged adds nothing, so this one stays high tier even at low volume."
+   "note": "Reviews a 10% sample of the answers. A reviewer on the same tier as the reviewed component adds no assurance, so it remains on the higher tier despite the low volume."
   }
  ]
 }

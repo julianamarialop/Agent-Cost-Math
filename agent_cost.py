@@ -629,15 +629,15 @@ def self_test() -> int:
         arch = json.load(fh)
     res = price_architecture(arch, prices)
     by_name = {c["name"]: c for c in res["components"]}
-    assert by_name["Intent triage"]["cost_usd"] == 40.00, by_name["Intent triage"]["cost_usd"]; n += 1
-    assert by_name["Claim specialist"]["cost_usd"] == 1440.00, by_name["Claim specialist"]["cost_usd"]; n += 1
-    assert by_name["Document extractor"]["cost_usd"] == 73.80; n += 1
+    assert by_name["Question classification"]["cost_usd"] == 40.00, by_name["Question classification"]["cost_usd"]; n += 1
+    assert by_name["Order resolution agent"]["cost_usd"] == 1440.00, by_name["Order resolution agent"]["cost_usd"]; n += 1
+    assert by_name["Shipping document reader"]["cost_usd"] == 73.80; n += 1
     assert by_name["History compressor"]["cost_usd"] == 106.20; n += 1
-    assert by_name["Final decision review"]["cost_usd"] == 25.88; n += 1
+    assert by_name["Answer quality review"]["cost_usd"] == 25.88; n += 1
     assert res["monthly_cost_usd"] == 1685.88, res["monthly_cost_usd"]; n += 1
 
     # The headline of the talk: fewer calls, far more cost.
-    triage, spec = by_name["Intent triage"], by_name["Claim specialist"]
+    triage, spec = by_name["Question classification"], by_name["Order resolution agent"]
     assert triage["monthly_calls"] > 4 * spec["monthly_calls"]; n += 1
     assert spec["cost_usd"] > 30 * triage["cost_usd"]; n += 1
     assert spec["cost_share_pct"] == 85.4, spec["cost_share_pct"]; n += 1
@@ -679,7 +679,7 @@ def self_test() -> int:
     downgraded = json.loads(json.dumps(arch))
     downgraded["components"][1]["model"] = "Claude Haiku 4.5"
     res2 = price_architecture(downgraded, prices)
-    spec2 = [c for c in res2["components"] if c["name"] == "Claim specialist"][0]
+    spec2 = [c for c in res2["components"] if c["name"] == "Order resolution agent"][0]
     assert any(a.startswith("UNDERSIZED") for a in spec2["alerts"]), spec2["alerts"]; n += 1
     # And the wrong model makes the bill look BETTER, which is the trap.
     assert res2["monthly_cost_usd"] < res["monthly_cost_usd"]; n += 1

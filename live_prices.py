@@ -7,11 +7,12 @@ Stdlib only. No API key, no account: every source here is public.
     python live_prices.py --check          # compare the hand table against live
     python live_prices.py --self-test      # offline, against recorded fixtures
 
-Why this exists. A hand transcribed price table goes wrong quietly: the model
-name stays right while the number drifts, and a check that compares names cannot
-see it. The table that shipped with this repo had Claude Sonnet 5 at 3/15 per
-million while the vendor page said 2/10, and GPT-4.1 at 5/15 while Azure billed
-2/8. Nothing failed. Every estimate built on it was simply wrong.
+Purpose. A manually transcribed price table can diverge from the vendor's price
+without any visible sign: the model name remains correct while the price
+changes, and a check that compares names cannot detect it. The table originally
+published with this repository recorded Claude Sonnet 5 at USD 3/15 per million
+tokens while the vendor page stated USD 2/10, and GPT-4.1 at USD 5/15 while Azure
+charged USD 2/8. No check failed, and every estimate based on it was incorrect.
 
 Three sources, each read the way it publishes:
 
@@ -30,7 +31,7 @@ Rules the code enforces rather than suggests:
    per 1M for newer ones, in the same API. An unknown unit refuses.
 3. No silent fallback. If a source cannot be reached, the last successful fetch
    is used only with its age printed next to it, and with no previous fetch the
-   run refuses instead of quietly reverting to the hand table.
+   run refuses instead of reverting to the hand table without stating so.
 """
 from __future__ import annotations
 
@@ -71,12 +72,13 @@ def _age_hours(iso: str, now: str | None = None) -> float | None:
 
 
 def http_get(url: str, timeout: float = 30.0, max_wait: float = 150.0) -> str:
-    """GET with the one retry policy a shared public API needs.
+    """GET with the retry policy a shared public API requires.
 
-    Azure answers 429 with a Retry-After of about a minute when it is busy, which
-    is exactly what happens when a room full of people runs the same command.
-    Waiting for it is correct; hammering it makes everyone wait longer. Past
-    `max_wait` seconds the call gives up loudly instead of hanging the demo."""
+    Azure answers 429 with a Retry-After of about a minute under load, which is
+    the expected situation when many participants execute the same command.
+    The call waits for the interval the API indicates, since repeated requests
+    would extend the wait for everyone. After `max_wait` seconds it stops with an
+    explicit error instead of blocking indefinitely."""
     waited = 0.0
     while True:
         req = urllib.request.Request(url, headers={
@@ -248,7 +250,7 @@ def fetch_live(base: dict, fetch=None, region: str | None = None) -> dict:
     replaced by what its source publishes right now.
 
     Structure that no price source publishes (tier, notes) is kept from the base
-    table and that is said in the output, so nobody mistakes it for fetched."""
+    table and the output states so, to prevent it from being read as retrieved."""
     fetch = fetch or http_get
     region = region or base.get("azure_region", "eastus2")
     models = base["models"]
@@ -412,7 +414,7 @@ _FIX_ROWS = [
     _row("Azure OpenAI GPT5", "5.4 inp Gl", 2.5, "1M"),
     _row("Azure OpenAI GPT5", "5.4 opt Gl", 15.0, "1M"),
     _row("Azure OpenAI GPT5", "5.4 cd inp Gl", 0.25, "1M"),
-    # The trap: same family, priority processing, twice the price.
+    # Same family, priority processing, twice the price: must not be read.
     _row("Azure OpenAI GPT5", "5.4 pp inp Gl", 5.0, "1M"),
 ]
 

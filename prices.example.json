@@ -1,7 +1,7 @@
 {
  "provenance": "public list prices, transcribed by hand and checked against the live sources",
  "pricing_as_of": "2026-10-14",
- "status": "A hand table goes wrong quietly: the model name stays right while the number drifts, and a check that compares names cannot see it. This file's previous version had Claude Sonnet 5 at 3/15 per million against a vendor price of 2/10, and GPT-4.1 at 5/15 against an Azure price of 2/8. Run `python live_prices.py --check` before quoting, or `python agent_cost.py --live` to price from the sources directly.",
+ "status": "A manually transcribed price table can diverge from the vendor's price without any visible sign: the model name remains correct while the price changes. The previous version of this file recorded Claude Sonnet 5 at USD 3/15 per million tokens against a vendor price of USD 2/10, and GPT-4.1 at USD 5/15 against an Azure price of USD 2/8. Run `python live_prices.py --check` before quoting, or `python agent_cost.py --live` to use the sources directly.",
  "unit": "USD per 1,000 tokens",
  "azure_region": "eastus2",
  "models": {
