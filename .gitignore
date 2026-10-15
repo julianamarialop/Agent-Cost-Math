@@ -1,0 +1,6 @@
+# Written by `live_prices.py` and `agent_cost.py --live`: a dated snapshot of the
+# vendors' prices, regenerated on every run. Committing it would turn a fetch
+# into a hand table again.
+prices.live.json
+__pycache__/
+*.pyc

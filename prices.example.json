@@ -1,0 +1,76 @@
+{
+ "provenance": "public list prices, transcribed by hand and checked against the live sources",
+ "pricing_as_of": "2026-10-14",
+ "status": "A hand table goes wrong quietly: the model name stays right while the number drifts, and a check that compares names cannot see it. This file's previous version had Claude Sonnet 5 at 3/15 per million against a vendor price of 2/10, and GPT-4.1 at 5/15 against an Azure price of 2/8. Run `python live_prices.py --check` before quoting, or `python agent_cost.py --live` to price from the sources directly.",
+ "unit": "USD per 1,000 tokens",
+ "azure_region": "eastus2",
+ "models": {
+  "Claude Haiku 4.5": {
+   "tier": "cheap",
+   "input_per_1k": 0.001,
+   "output_per_1k": 0.005,
+   "cache_read_per_1k": 0.0001,
+   "cache_write_per_1k": 0.00125,
+   "min_cache_tokens": 4096,
+   "source": {"route": "anthropic", "name": "Claude Haiku 4.5"},
+   "note": "the cacheable floor is the highest of this set, which is the opposite of what people assume about small models"
+  },
+  "Claude Sonnet 5": {
+   "tier": "mid",
+   "input_per_1k": 0.002,
+   "output_per_1k": 0.010,
+   "cache_read_per_1k": 0.0002,
+   "cache_write_per_1k": 0.0025,
+   "min_cache_tokens": 1024,
+   "source": {"route": "anthropic", "name": "Claude Sonnet 5"}
+  },
+  "Claude Opus 5": {
+   "tier": "high",
+   "input_per_1k": 0.005,
+   "output_per_1k": 0.025,
+   "cache_read_per_1k": 0.0005,
+   "cache_write_per_1k": 0.00625,
+   "min_cache_tokens": 512,
+   "source": {"route": "anthropic", "name": "Claude Opus 5"},
+   "note": "cache write costs 1.25x the input price on a short TTL, so caching is not pure saving"
+  },
+  "GPT-4.1": {
+   "tier": "mid",
+   "input_per_1k": 0.002,
+   "output_per_1k": 0.008,
+   "cache_read_per_1k": 0.0005,
+   "cache_write_per_1k": 0.002,
+   "min_cache_tokens": 1024,
+   "source": {
+    "route": "azure",
+    "product": "Azure OpenAI",
+    "skus": {
+     "input_per_1k": "gpt 4.1 Inp glbl",
+     "output_per_1k": "gpt 4.1 Outp glbl",
+     "cache_read_per_1k": "gpt 4.1 cached Inp glbl"
+    },
+    "cache_write": "input"
+   },
+   "note": "Azure OpenAI, Global Standard deployment. No write surcharge: a cache miss is billed as input."
+  },
+  "GPT-5.4": {
+   "tier": "high",
+   "input_per_1k": 0.0025,
+   "output_per_1k": 0.015,
+   "cache_read_per_1k": 0.00025,
+   "cache_write_per_1k": 0.0025,
+   "min_cache_tokens": 1024,
+   "source": {
+    "route": "azure",
+    "product": "Azure OpenAI GPT5",
+    "skus": {
+     "input_per_1k": "5.4 inp Gl",
+     "output_per_1k": "5.4 opt Gl",
+     "cache_read_per_1k": "5.4 cd inp Gl"
+    },
+    "cache_write": "input"
+   },
+   "note": "Azure OpenAI, Global Standard, short context. The same family also publishes priority processing (2x), batch and long context SKUs, which is why the SKU is matched by its exact name and never by substring."
+  }
+ }
+}

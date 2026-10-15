@@ -1,0 +1,65 @@
+{
+ "project": "Claims triage with a router and domain specialists",
+ "orchestration_pattern": "router",
+ "model_choice": "Declared per component. Leave a component's model out and the engine picks the cheapest model of the required tier from whatever price table it was given, so the answer would move every time a vendor moves a price.",
+ "components": [
+  {
+   "name": "Intent triage",
+   "role": "router",
+   "model": "Claude Haiku 4.5",
+   "task_class": "classification",
+   "monthly_volume": 40000,
+   "input_tokens": 900,
+   "output_tokens": 20,
+   "caching": true,
+   "note": "Highest call volume in the system and 2.4% of the bill. Caching is declared here and will NOT happen: the prefix is under this model's cacheable floor, and the API neither errors nor warns."
+  },
+  {
+   "name": "Claim specialist",
+   "role": "specialist",
+   "model": "Claude Opus 5",
+   "task_class": "tool_using_agent",
+   "monthly_volume": 9000,
+   "max_iterations": 8,
+   "prompt_base_tokens": 6000,
+   "delta_tokens_per_iteration": 500,
+   "output_tokens_per_iteration": 300,
+   "caching": true,
+   "static_prefix_tokens": 6000,
+   "note": "Four times fewer calls than the router and thirty six times the cost. The loop bills 62,000 input tokens per task where the naive count says 48,000, and the role is mid tier while the task is tool using, so the higher of the two wins."
+  },
+  {
+   "name": "Document extractor",
+   "role": "extractor",
+   "model": "Claude Haiku 4.5",
+   "task_class": "extraction",
+   "monthly_volume": 9000,
+   "input_tokens": 8000,
+   "output_tokens": 600,
+   "caching": true,
+   "note": "Map phase: reads the report and copies out the fields. Reduce has to be code, not another model call."
+  },
+  {
+   "name": "History compressor",
+   "role": "compressor",
+   "model": "Claude Haiku 4.5",
+   "task_class": "history_compression",
+   "monthly_volume": 9000,
+   "input_tokens": 12000,
+   "output_tokens": 800,
+   "caching": true,
+   "note": "Exists so the specialist does not pay the full inflation. Its reader is the next iteration of the agent, not a human, which is why it stays on the cheap tier. Classify it as summarization for humans and it moves to mid, killing the saving it exists to produce."
+  },
+  {
+   "name": "Final decision review",
+   "role": "judge",
+   "model": "Claude Opus 5",
+   "task_class": "evaluation",
+   "monthly_volume": 900,
+   "input_tokens": 5000,
+   "output_tokens": 500,
+   "caching": true,
+   "note": "10% sample. A judge on the same tier as the judged adds nothing, so this one stays high tier even at low volume."
+  }
+ ]
+}
